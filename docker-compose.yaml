@@ -1,0 +1,17 @@
+version: '2.4'
+services:
+  api:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    container_name: arq
+    environment:
+        - PYTHONPATH=/arq/
+        - TZ=Europe/London
+        - APP_DEBUG=True
+        - ENV=development
+    command: uvicorn main:arq --host 0.0.0.0 --port 8000 --reload
+    volumes:
+            - ./arq:/arq
+    ports:
+            - 8000:8000
