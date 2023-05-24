@@ -1,0 +1,47 @@
+name: Terraform Apply
+on:
+  workflow_dispatch:
+    branches: [ master ]
+
+jobs:
+  Terraform-Apply:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    env:
+     AWS_REGION: eu-west-2
+
+    strategy:
+      fail-fast: false
+      matrix:
+        path:
+          - development
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: configure aws credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume: <STORE THIS AS A SECRET>
+        role-session-name: github-actions-eks
+        aws-region: ${{AWS_REGION}}
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+
+    - name: Terraform Init
+      run: |-
+        cd terraform/${{ matrix.path }}
+        terraform init
+
+    # apply previously generated Terraform Plan
+    # from the terraform.tfplan file in the branch
+    - name: Terraform Apply
+      run: |-
+        ls -lasi
+        pwd
+        cd terraform/${{ matrix.path }}
+        terraform apply "terraform.tfplan"

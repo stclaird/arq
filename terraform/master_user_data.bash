@@ -32,5 +32,4 @@ cd /projects/arq/arg
 
 (crontab -l 2>/dev/null || echo ""; echo "*/5 * * * * /projects/arq/start_uvicorn.bash") | crontab -
 
-
 service nginx restart

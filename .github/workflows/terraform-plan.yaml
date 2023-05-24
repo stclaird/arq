@@ -1,0 +1,78 @@
+name: Terraform Plan
+
+on:
+  push:
+    paths:
+    - terraform/**
+  pull_request:
+    paths:
+    - terraform/**
+  workflow_dispatch:
+    branches: [ main ]
+
+jobs:
+  Terraform:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+      deployments: write
+      statuses: write
+      actions: write
+      checks: read
+    env:
+     TF_ACTION_WORKING_DIR: terraform
+     AWS_REGION: eu-west-2
+
+    strategy:
+      fail-fast: false
+      matrix:
+        path:
+          - development
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: configure aws credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume: <STORE THIS AS A SECRET>
+        role-session-name: github-actions-eks
+        aws-region: ${{AWS_REGION}}
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+
+    - name: Terraform Init
+      id: tfinit
+      run: |- 
+        cd terraform/${{ matrix.path }}
+        terraform init
+
+    - name: Terraform validate
+      id: tfvalidate
+      run: |- 
+        cd terraform/${{ matrix.path }}
+        terraform validate
+
+    - name: Terraform Plan
+      id: plan
+      run: |- 
+        cd terraform/${{ matrix.path }}
+        terraform plan -out terraform.tfplan
+
+    - name: Terraform Plan Status
+      if: steps.plan.outcome == 'failure'
+      run: exit 1
+
+    - name: GIT commit and push docs
+      env: 
+        CI_COMMIT_AUTHOR: Continuous Integration
+      run: |
+        git config --global user.name "${{ env.CI_COMMIT_AUTHOR }}"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add terraform/${{ matrix.path }}/terraform.tfplan
+        git commit -m "Terraform Plan"
+        git push --set-upstream origin main
+
