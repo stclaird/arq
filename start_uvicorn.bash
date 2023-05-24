@@ -1,2 +1,3 @@
 #!/bin/bash
-nohup uvicorn main:arq &
+cd /projects/arq/arq
+uvicorn main:arq 
