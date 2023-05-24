@@ -14,8 +14,9 @@ service nginx start
 PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
 
 cat <<EOF > /etc/nginx/sites-enabled/dynamic-string.conf
+server {
         listen 80;    
-        server_name ${PUBLIC_IP};       
+        server_name dynamic-string.davidstclair.co.uk       
         location / {        
                 proxy_pass http://127.0.0.1:8000;    
         }
@@ -27,8 +28,9 @@ mkdir /projects
 cd /projects
 git clone https://github.com/stclaird/arq
 
-cd arq/arg
+cd /projects/arq/arg
 
-uvicorn main:arq
+(crontab -l 2>/dev/null || echo ""; echo "*/5 * * * * /projects/arq/start_uvicorn.bash") | crontab -
+
 
 service nginx restart
