@@ -1,3 +1,4 @@
+"""API to provide simple Dynamic String API"""
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -11,19 +12,24 @@ application = FastAPI(
 
 arq = application
 
-"""API Endpoint for the Home Page"""
+
 @arq.get("/", response_class=HTMLResponse )
 async def info(request: Request):
-    with open('dynamicstring.txt', 'r') as file:
+    """API Endpoint for the Home Page"""
+
+    with open('dynamicstring.txt', 'r', encoding="utf-8") as file:
         dynamic_string = file.read().rstrip()
 
-    return templates.TemplateResponse("homepage.html", {"request": request, "dynamicstring": dynamic_string})
+    return templates.TemplateResponse("homepage.html",
+                                      {"request": request, "dynamicstring": dynamic_string}
+                                    )
 
-"""Update the String endpoint - use this to update the string"""
+
 @arq.get("/update/{dynamicstring}")
-async def info(request: Request, dynamicstring: str ):
-    with open('dynamicstring.txt', 'w') as f:
-        f.write(dynamicstring)
+async def update(request: Request, dynamicstring: str ):
+    """API Endpoint to update dynamic string"""
+    with open('dynamicstring.txt', 'w', encoding="utf-8") as dynamic_file:
+        dynamic_file.write(dynamicstring)
 
     return {
         "response" : dynamicstring
